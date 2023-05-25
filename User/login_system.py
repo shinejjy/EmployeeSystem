@@ -1,14 +1,16 @@
 import tkinter as tk
-from frame.views import EmployeeMainFrame, CustomMainFrame, CustomerLoginFrame, EmployeeLoginFrame
-from frame.easy_sql import EasySql
+from User.CustomerLoginFrame import CustomerLoginFrame
+from User.EmployeeLoginFrame import EmployeeLoginFrame
+from Customer.CustomerMainFrame import CustomerMainFrame
+from Employee.EmployeeMainFrame import EmployeeMainFrame
 
 
 class UserLoginSystem:
-    def __init__(self):
-        self.db = EasySql()
+    def __init__(self, db):
+        self.db = db
         self.window = tk.Tk()
         self.window.title("用户登录系统")
-        self.window.geometry("500x400")
+        self.window.geometry("600x600")
         self.window.resizable(False, False)
         self.window.configure(bg="white")
 
@@ -22,13 +24,8 @@ class UserLoginSystem:
 
     def create_frame(self):
         # 创建员工主界面、客户主界面、员工登录界面、客户登录界面
-        self.customer_main_frame = CustomMainFrame(self, self.window)
-        self.employee_main_frame = EmployeeMainFrame(self, self.window)
         self.customer_login_frame = CustomerLoginFrame(self, self.window)
         self.employee_login_frame = EmployeeLoginFrame(self, self.window)
-
-        self.employee_main_frame.hide()
-        self.customer_main_frame.hide()
 
     def show_login_frame(self):
         # 显示登录界面（包含切换按钮）
@@ -58,21 +55,17 @@ class UserLoginSystem:
         self.login_frame.pack()
         self.customer_login_frame.hide()
         self.employee_login_frame.show()
-        self.login_frame.pack()
 
     def show_main_frame(self):
         self.customer_login_frame.hide()
         self.employee_login_frame.hide()
         self.login_frame.pack_forget()
         if self.mode == 'employee':
+            self.employee_main_frame = EmployeeMainFrame(self, self.window)
             self.employee_main_frame.show()
         else:
+            self.customer_main_frame = CustomerMainFrame(self, self.window)
             self.customer_main_frame.show()
 
     def run(self):
         self.window.mainloop()
-
-
-if __name__ == "__main__":
-    login_system = UserLoginSystem()
-    login_system.run()
