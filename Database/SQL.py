@@ -72,6 +72,8 @@ class EasySql:
         # 构造插入数据的 SQL 语句
         sql = f"INSERT INTO {table_name} VALUES ({variable_str})"
 
+        print(sql)
+
         # 执行 SQL 语句
         self.cursor.execute(sql)
 

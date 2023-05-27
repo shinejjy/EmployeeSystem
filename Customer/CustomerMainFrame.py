@@ -2,7 +2,8 @@ import tkinter as tk
 from Database.SQL import change_code
 from tkinter import ttk
 from Base.BaseFrame import BaseFrame
-from Customer.PageFrame import MaterialsPage
+from Customer.PageFrame.MaterialsPage import MaterialsPage
+from Customer.PageFrame.OrderListPage import OrderListPage
 
 
 # 登录成功界面
@@ -14,6 +15,7 @@ class CustomerMainFrame(BaseFrame):
         # 创建界面上方菜单和基本信息框架
         self.create_menu_bar()
 
+        self.order_list = []
         self.pages = []
         self.create_all_page()
 
@@ -33,22 +35,22 @@ class CustomerMainFrame(BaseFrame):
             self.menu_buttons.append(button)
 
     def create_all_page(self):
-        self.materials_page = MaterialsPage(self.app, self.window, True)
+        self.materials_page = MaterialsPage(self.app, self, show=False)
         self.pages.append(self.materials_page)
+        self.order_list_page = OrderListPage(self.app, self, show=False)
+        self.pages.append(self.order_list_page)
 
     def switch_page(self, page_name):
         self.clear_all_pages()
         if page_name == "辅料查询":
             self.materials_page.show()
         elif page_name == "订购辅料":
-            # 切换到订购辅料页面的操作
             pass
         elif page_name == "开票付款":
             # 切换到开票付款页面的操作
             pass
         elif page_name == "订购查询":
-            # 切换到订购查询页面的操作
-            pass
+            self.order_list_page.show()
         elif page_name == "统计":
             # 切换到统计页面的操作
             pass

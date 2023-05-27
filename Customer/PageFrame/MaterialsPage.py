@@ -5,11 +5,12 @@ from Base.BaseFrame import BaseFrame
 from Database.SQL import change_code
 import qrcode
 from PIL import ImageTk, Image
+import time
 
 
 class MaterialsPage(BaseFrame):
-    def __init__(self, app, window, is_hide):
-        super().__init__(app, window, is_hide)
+    def __init__(self, app, window, show):
+        super().__init__(app, window, show)
         self.app = app
         self.window = window
         self.configure(bg="white")
@@ -168,7 +169,7 @@ class MaterialsPage(BaseFrame):
     def open_payment_window(self):
         payment_window = tk.Toplevel(self.window)
         payment_window.title("支付")
-        payment_window.geometry("300x300")
+        payment_window.geometry("400x400")
 
         total_price = 0.0
         for child in self.purchaseTree.get_children():
@@ -187,6 +188,48 @@ class MaterialsPage(BaseFrame):
         qr_code_label.image = qr_code_image  # 保持引用，防止图像被垃圾回收
         qr_code_label.pack()
 
-        payment_window.mainloop()
+        def scan_qr_code():
+            # 模拟扫码操作，这里假设扫描的结果为total_price的字符串形式
+            scanned_result = str(total_price)
+
+            # 检查扫描结果与总价的匹配
+            if scanned_result == str(total_price):
+                if scanned_result == "0.0":
+                    result_label.config(text="您未选购任何商品！")
+                    return
+                result_label.config(text="支付成功")
+
+                order_info = {
+                    "timestamp": time.time(),
+                    "total_price": total_price,
+                    "purchase_list": self.get_purchase_list()
+                }
+                self.window.order_list.append(order_info)
+
+                print(self.window.order_list)
+
+                self.purchaseTree.delete(*self.purchaseTree.get_children())
+                self.priceLabel.configure(text="总价：0.0元")
+                payment_window.destroy()
+            else:
+                result_label.config(text="支付失败")
+
+        # 添加扫码按钮和回显标签
+        scan_button = tk.Button(payment_window, text="扫码", command=scan_qr_code)
+        scan_button.pack()
+        result_label = tk.Label(payment_window, text="")
+        result_label.pack()
 
         payment_window.mainloop()
+
+    def get_purchase_list(self):
+        purchase_list = []
+        for child in self.purchaseTree.get_children():
+            pno = self.purchaseTree.set(child, "#1")
+            pna = self.purchaseTree.set(child, "#2")
+            ppr = self.purchaseTree.set(child, "#3")
+            quantity = self.purchaseTree.set(child, "#4")
+            total_price = self.purchaseTree.set(child, "#5")
+            purchase_item = [pno, pna, ppr, quantity, total_price]
+            purchase_list.append(purchase_item)
+        return purchase_list

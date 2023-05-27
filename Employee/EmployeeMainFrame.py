@@ -1,6 +1,6 @@
 import tkinter as tk
 from Base.BaseFrame import BaseFrame
-from Database.SQL import change_code
+from Employee.PageFrame.InformationPage import InformationPage
 
 
 class EmployeeMainFrame(BaseFrame):
@@ -9,10 +9,9 @@ class EmployeeMainFrame(BaseFrame):
 
         # 创建界面上方菜单和基本信息框架
         self.create_menu_bar()
-        self.create_info_widgets()
+        self.pages = []
 
-        # 默认显示基本信息页面
-        self.show_basic_info_page()
+        self.create_all_pages()
 
     def create_menu_bar(self):
         self.menu_frame = tk.Frame(self, bg="white")
@@ -26,62 +25,14 @@ class EmployeeMainFrame(BaseFrame):
             button.pack(side=tk.LEFT, padx=0, ipadx=20)
             self.menu_buttons.append(button)
 
-    def create_info_widgets(self):
-        self.info_frame = tk.Frame(self, bg="white")
-        self.info_frame.pack(fill=tk.BOTH, padx=20, pady=20)
-
-        self.info_labels = {}
-
-    def show_basic_info_page(self):
-        # 重置基本信息页面
-        self.clear_info_frame()
-
-        # 查询员工基本信息
-        sql = f"""
-        SELECT DEPT,SN,SSex,SP,SID,SS
-        FROM EmployeeInformation
-        WHERE SID = '{self.app.username}'
-        """
-
-        self.app.db.execute(sql)
-        info = self.app.db.cursor.fetchone()
-
-        if info:
-            # 转换编码形式
-            info = change_code(info)
-            info_data = {
-                "部门": info[0],
-                "姓名": info[1],
-                "性别": info[2],
-                "职位": info[3],
-                "工号": info[4],
-                "状态": info[5]
-            }
-        else:
-            info_data = {
-                "部门": '',
-                "姓名": '',
-                "性别": '',
-                "职位": '',
-                "工号": '',
-                "状态": ''
-            }
-
-        # 将员工基本信息显示在基本信息页面中
-        row = 0
-        for key, value in info_data.items():
-            label = tk.Label(self.info_frame, text=f"{key}: {value}", bg="white")
-            label.grid(row=row, column=0, sticky="w")
-            self.info_labels[key] = label
-            row += 1
-
-    def clear_info_frame(self):
-        for label in self.info_labels.values():
-            label.grid_forget()
+    def create_all_pages(self):
+        self.information_page = InformationPage(self.app, self, show=False)
+        self.pages.append(self.information_page)
 
     def switch_page(self, page_name):
+        self.clear_all_pages()
         if page_name == "基本信息":
-            self.show_basic_info_page()
+            self.information_page.show()
         elif page_name == "A":
             # 切换到A页面的操作
             pass
@@ -89,6 +40,6 @@ class EmployeeMainFrame(BaseFrame):
             self.app.show_employee_login_frame()
             self.hide()
 
-    def show(self):
-        super(EmployeeMainFrame, self).show()
-        self.show_basic_info_page()
+    def clear_all_pages(self):
+        for page in self.pages:
+            page.hide()

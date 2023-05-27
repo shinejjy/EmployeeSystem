@@ -2,12 +2,12 @@ import tkinter as tk
 
 
 class BaseFrame(tk.Frame):
-    def __init__(self, app, window, if_hide=False, *args, **kwargs):
+    def __init__(self, app, window, show=True, *args, **kwargs):
         super().__init__(window, *args, **kwargs)
         self.app = app
         self.window = window
         self.configure(bg="white")
-        if if_hide:
+        if not show:
             self.hide()
 
     def show(self):
