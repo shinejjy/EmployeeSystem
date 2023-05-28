@@ -33,19 +33,31 @@ class EasySql:
         else:
             print('Failed to connect to the database!')
 
-    def createTable(self, table_name, type_dic):
+    def createTable(self, table_name, type_dic, primary_key=None, foreign_keys=None):
         # Check if the table already exists
         if self.tableExist(table_name):
-            print('Table already exists!')
+            print(f'Table {table_name} already exists!')
             return
+
         # Construct the CREATE TABLE SQL statement
         columns = ', '.join([f"{column} {data_type}" for column, data_type in type_dic.items()])
-        sql = f"CREATE TABLE {table_name} ({columns})"
+        if primary_key:
+            columns += f", PRIMARY KEY ({primary_key if isinstance(primary_key, str) else ', '.join(primary_key)})"
+
+        foreign_key_stmts = []
+        if foreign_keys:
+            for column, references in foreign_keys.items():
+                foreign_key_stmts.append(f"FOREIGN KEY ({column}) REFERENCES {references}")
+
+        sql = f"CREATE TABLE {table_name} ({columns}"
+        if foreign_key_stmts:
+            sql += ", " + ", ".join(foreign_key_stmts)
+        sql += ")"
 
         # Execute the SQL statement
         self.cursor.execute(sql)
         if self.cursor:
-            print('Successfully create Table!')
+            print(f'Successfully create Table {table_name}!')
 
     def tableExist(self, table_name):
         # Check if the table exists in the database
@@ -107,3 +119,9 @@ class EasySql:
 
             # Execute the SQL statement
             self.cursor.execute(sql)
+
+
+def change_code(info):
+    return tuple(
+        item.encode('latin1').decode('gbk') if isinstance(item, str) else item for item in info
+    )

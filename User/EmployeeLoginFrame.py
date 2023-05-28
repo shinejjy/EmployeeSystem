@@ -1,5 +1,7 @@
 import tkinter as tk
+from tkinter import messagebox
 from Base.BaseFrame import BaseFrame
+from Database.SQL import change_code
 
 
 class EmployeeLoginFrame(BaseFrame):
@@ -33,6 +35,8 @@ class EmployeeLoginFrame(BaseFrame):
         self.result_label = tk.Label(self, text="", bg="white", font=("微软雅黑", 12))
         self.result_label.grid(row=3, column=0, columnspan=2, pady=10)
 
+        self.select_window = None
+
     def login(self):
         # 获取输入的工号和密码
         username = self.username_entry.get()
@@ -40,22 +44,91 @@ class EmployeeLoginFrame(BaseFrame):
 
         # 构建SQL语句，用于查询密码是否匹配
         sql = f"""
-        SELECT SPassWord
-        FROM EmployeeInformation
-        WHERE SID='{username}'
+        SELECT 密码, 职位, 状态, 部门
+        FROM [9员工信息表]
+        WHERE 工号='{username}'
         """
 
         # 读取已注册用户信息
         self.app.db.execute(sql)
         result = self.app.db.cursor.fetchone()
+        result = change_code(result)
 
         if result:
             if result[0] == password:
                 # 登录成功，设置应用的用户名和模式，并显示成功页面
                 self.app.username = username
                 self.app.mode = "employee"
-                self.app.show_main_frame()
+                self.app.is_leader = True if result[2] == 'L' else False
+                if self.select_window is not None and self.select_window.winfo_exists():
+                    # 如果之前已经打开了选择职位窗口，则先关闭之前的窗口
+                    self.select_window.destroy()
+                self.select_depart(result[1])
             else:
                 self.result_label.config(text="密码错误！", fg="red")
         else:
             self.result_label.config(text="工号不存在！", fg="red")
+
+    def select_depart(self, position):
+
+        def confirm_position(selected_position):
+            position_dic = {
+                '营销中心': 'YX', '销售部': 'XS', '内务': 'NW', '食品添加剂': 'SP',
+                '':''
+            }
+
+        position_li = position.split('\n')
+        if len(position_li) == 1:
+            self.app.login_position = confirm_position
+            self.app.show_main_frame()
+        else:
+            # 创建一个新的Toplevel窗口来显示多个职位选择
+            self.select_window = tk.Toplevel(self)
+            self.select_window.title("选择职位")
+            self.select_window.resizable(False, False)
+
+            # 创建一个标签显示提示文本
+            label = tk.Label(self.select_window, text="请选择您的职位：", font=("微软雅黑", 12))
+            label.pack(pady=20)
+
+            # 创建一个列表框来显示多个职位选项
+            listbox = tk.Listbox(self.select_window, font=("微软雅黑", 12), height=len(position_li))
+            listbox.pack()
+
+            # 将职位选项添加到列表框中
+            for position in position_li:
+                listbox.insert(tk.END, position)
+
+            def select_position():
+                if listbox.curselection():
+                    selected_position = listbox.get(listbox.curselection())
+                    self.app.login_position = confirm_position(selected_position)
+                    self.app.show_main_frame()
+                    self.select_window.destroy()
+                else:
+                    # 如果没有选中职位，显示提示信息或采取其他操作
+                    messagebox.showinfo("提示", "请先选择一个职位！", parent=self.select_window)
+
+
+            # 创建一个确认按钮，点击后执行选择职位的操作
+            confirm_button = tk.Button(self.select_window, text="确认", command=select_position, font=("微软雅黑", 12))
+            confirm_button.pack(pady=20)
+
+            # 获取当前窗体的左上角坐标
+            self.update_idletasks()
+            self_width = self.winfo_width()
+            self_height = self.winfo_height()
+            self_x = self.winfo_rootx()
+            self_y = self.winfo_rooty()
+
+            # 设置选择职位窗口相对于当前窗体的位置
+            select_window_width = self.select_window.winfo_width()
+            select_window_height = self.select_window.winfo_height()
+            select_x = self_x + (self_width - select_window_width) // 2
+            select_y = self_y + (self_height - select_window_height) // 2
+            self.select_window.geometry(f"+{select_x}+{select_y}")
+
+
+
+
+

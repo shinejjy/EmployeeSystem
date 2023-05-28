@@ -24,9 +24,9 @@ class InformationPage(BaseFrame):
 
         # 查询基本信息
         sql = f"""
-        SELECT DEPT, SN, SSex, SP, SID, SS
-        FROM EmployeeInformation
-        WHERE SID = '{self.app.username}'
+        SELECT 部门, 姓名, 性别, 职位, 工号, 状态
+        FROM [9员工信息表]
+        WHERE 工号 = '{self.app.username}'
         """
         self.app.db.execute(sql)
         info = self.app.db.cursor.fetchone()
