@@ -1,23 +1,52 @@
-from tkinter import *
-from tkinter import ttk
+import pymssql
 
-main = Tk()
-data = [(1, "小明", 23, '男', '2021-09-21'), (2, "小强", 23, '男', '2021-09-21'),
-        (3, "小红", 23, '女', '2021-09-21'), (4, "铁头", 23, '男', '2021-09-21')]
-tree = ttk.Treeview(main, columns=('id', 'name', 'age', 'sex', 'birth'), show="tree", displaycolumns="#all")
-tree.heading("#0", text="学校", anchor=W)
-tree.heading('id', text="编号", anchor=W)
-tree.heading('name', text="姓名", anchor=W)
-tree.heading('age', text="年龄", anchor=W)
-tree.heading('sex', text="性别", anchor=W)
-tree.heading('birth', text="出生日期", anchor=W)
-stu_root = tree.insert("", END, text="学生")
-man = tree.insert(stu_root, END, text="男")
-wom = tree.insert(stu_root, END, text="女")
-for itm in data:
-    if itm[3] == "男":
-        tree.insert(man, END, text=itm[1], values=itm)
-    else:
-        tree.insert(wom, END, text=itm[1], values=itm)
-tree.pack(expand=1, fill=BOTH)
-main.mainloop()
+# 连接数据库
+conn = pymssql.connect(server='your_server', user='your_username', password='your_password', database='your_database')
+
+# 创建研发客户档案模板表
+create_table_sql = '''
+CREATE TABLE CustomerTemplate (
+    [Description] VARCHAR(255),
+    [Column 1] VARCHAR(255),
+    [Column 2] VARCHAR(255),
+    [Column 3] VARCHAR(255),
+    [Column 4] VARCHAR(255),
+    [Column 5] VARCHAR(255),
+    [Column 6] VARCHAR(255),
+    [Column 7] VARCHAR(255),
+    [Column 8] VARCHAR(255),
+    [Column 9] VARCHAR(255),
+    [Column 10] VARCHAR(255),
+    [Column 11] VARCHAR(255),
+    [Column 12] VARCHAR(255),
+    [Column 13] VARCHAR(255),
+    [Column 14] VARCHAR(255),
+    [Column 15] VARCHAR(255),
+    [Column 16] VARCHAR(255),
+    [Column 17] VARCHAR(255),
+    [Column 18] VARCHAR(255),
+    [Column 19] VARCHAR(255),
+    [Column 20] VARCHAR(255),
+    [Column 21] VARCHAR(255),
+    [Column 22] VARCHAR(255),
+    [Column 23] VARCHAR(255),
+    [Column 24] VARCHAR(255),
+    [Column 25] VARCHAR(255),
+    [Column 26] VARCHAR(255)
+)
+'''
+with conn.cursor() as cursor:
+    cursor.execute(create_table_sql)
+    conn.commit()
+
+# 读取研发客户档案模板
+select_data_sql = 'SELECT * FROM CustomerTemplate'
+with conn.cursor(as_dict=True) as cursor:
+    cursor.execute(select_data_sql)
+    rows = cursor.fetchall()
+
+    for row in rows:
+        print(row)
+
+# 关闭数据库连接
+conn.close()
