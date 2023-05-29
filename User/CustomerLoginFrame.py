@@ -1,5 +1,5 @@
 import tkinter as tk
-from Base.BaseFrame import BaseFrame
+from Base.Base import BaseFrame
 
 
 class CustomerLoginFrame(BaseFrame):

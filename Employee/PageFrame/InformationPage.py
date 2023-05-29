@@ -1,6 +1,6 @@
 import tkinter as tk
 from Database.SQL import change_code
-from Base.BaseFrame import BaseFrame
+from Base.Base import BaseFrame
 
 
 class InformationPage(BaseFrame):
@@ -26,7 +26,7 @@ class InformationPage(BaseFrame):
         sql = f"""
         SELECT 部门, 姓名, 性别, 职位, 工号, 状态
         FROM [9员工信息表]
-        WHERE 工号 = '{self.app.username}'
+        WHERE 工号 = '{self.app.user_info['id']}'
         """
         self.app.db.execute(sql)
         info = self.app.db.cursor.fetchone()

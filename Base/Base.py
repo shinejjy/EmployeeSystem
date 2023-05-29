@@ -2,6 +2,22 @@ import tkinter as tk
 from tkinter import ttk
 
 
+class BaseFrame(tk.Frame):
+    def __init__(self, app, window, show=True, *args, **kwargs):
+        super().__init__(window, *args, **kwargs)
+        self.app = app
+        self.window = window
+        self.configure(bg="white")
+        if not show:
+            self.hide()
+
+    def show(self):
+        self.pack()
+
+    def hide(self):
+        self.pack_forget()
+
+
 class EditableTreeview(ttk.Treeview):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -55,3 +71,4 @@ class EditableTreeview(ttk.Treeview):
             self.entry.destroy()
             self.entry = None
             self.entry_index = None
+

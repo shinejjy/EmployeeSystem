@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
-from Base.BaseFrame import BaseFrame
+from Base.Base import BaseFrame
 from datetime import datetime
 
 

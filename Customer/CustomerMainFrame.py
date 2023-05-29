@@ -1,7 +1,7 @@
 import tkinter as tk
 from Database.SQL import change_code
 from tkinter import ttk
-from Base.BaseFrame import BaseFrame
+from Base.Base import BaseFrame
 from Customer.PageFrame.MaterialsPage import MaterialsPage
 from Customer.PageFrame.OrderListPage import OrderListPage
 

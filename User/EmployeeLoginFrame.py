@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
-from Base.BaseFrame import BaseFrame
+from Base.Base import BaseFrame
 from Database.SQL import change_code
 
 
@@ -39,14 +39,14 @@ class EmployeeLoginFrame(BaseFrame):
 
     def login(self):
         # 获取输入的工号和密码
-        username = self.username_entry.get()
+        userid = self.username_entry.get()
         password = self.password_entry.get()
 
         # 构建SQL语句，用于查询密码是否匹配
         sql = f"""
-        SELECT 密码, 职位, 状态, 部门
+        SELECT 密码, 职位, 状态, 部门, 姓名
         FROM [9员工信息表]
-        WHERE 工号='{username}'
+        WHERE 工号='{userid}'
         """
 
         # 读取已注册用户信息
@@ -57,29 +57,30 @@ class EmployeeLoginFrame(BaseFrame):
         if result:
             if result[0] == password:
                 # 登录成功，设置应用的用户名和模式，并显示成功页面
-                self.app.username = username
+                self.app.user_info['name'] = result[4]
+                self.app.user_info['id'] = userid
                 self.app.mode = "employee"
-                self.app.is_leader = True if result[2] == 'L' else False
                 if self.select_window is not None and self.select_window.winfo_exists():
                     # 如果之前已经打开了选择职位窗口，则先关闭之前的窗口
                     self.select_window.destroy()
-                self.select_depart(result[1])
+                self.select_depart(result[1:4])
             else:
                 self.result_label.config(text="密码错误！", fg="red")
         else:
             self.result_label.config(text="工号不存在！", fg="red")
 
-    def select_depart(self, position):
+    def select_depart(self, info_list):
+        position, state, depart = info_list
 
-        def confirm_position(selected_position):
-            position_dic = {
-                '营销中心': 'YX', '销售部': 'XS', '内务': 'NW', '食品添加剂': 'SP',
-                '':''
-            }
+        # self.app.is_leader = True if result[2] == 'L' else False
 
+        depart_li = depart.split('兼')
         position_li = position.split('\n')
-        if len(position_li) == 1:
-            self.app.login_position = confirm_position
+        if len(depart_li) == 1:
+            self.app.user_info['login_position'] = position
+            self.app.user_info['login_depart'] = self.app.user_info['id'][:2]
+            self.app.user_info['is_leader'] = True if state == 'L' else False
+            print(self.app.user_info['login_depart'])
             self.app.show_main_frame()
         else:
             # 创建一个新的Toplevel窗口来显示多个职位选择
@@ -99,16 +100,25 @@ class EmployeeLoginFrame(BaseFrame):
             for position in position_li:
                 listbox.insert(tk.END, position)
 
+            depart_dic = {
+                '营销中心': 'YX', '原辅料销售部': 'XS', '内务部': 'NW', '食品添加剂部': 'SP',
+                '研发服务部': 'YF', '信管部': 'XG', '外贸部': 'WM', '市场推广部': 'TG',
+                '产品管理部': 'CP'
+            }
+
             def select_position():
                 if listbox.curselection():
                     selected_position = listbox.get(listbox.curselection())
-                    self.app.login_position = confirm_position(selected_position)
+                    position_index = position_li.index(selected_position)
+                    selected_depart = depart_li[position_index]
+                    self.app.user_info['login_position'] = selected_position
+                    self.app.user_info['login_depart'] = depart_dic[selected_depart]
+                    self.app.user_info['is_leader'] = True if state.split('\n')[position_index] == 'L' else False
                     self.app.show_main_frame()
                     self.select_window.destroy()
                 else:
                     # 如果没有选中职位，显示提示信息或采取其他操作
                     messagebox.showinfo("提示", "请先选择一个职位！", parent=self.select_window)
-
 
             # 创建一个确认按钮，点击后执行选择职位的操作
             confirm_button = tk.Button(self.select_window, text="确认", command=select_position, font=("微软雅黑", 12))
@@ -127,8 +137,4 @@ class EmployeeLoginFrame(BaseFrame):
             select_x = self_x + (self_width - select_window_width) // 2
             select_y = self_y + (self_height - select_window_height) // 2
             self.select_window.geometry(f"+{select_x}+{select_y}")
-
-
-
-
 

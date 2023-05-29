@@ -2,6 +2,21 @@ import pandas as pd
 from Database.SQL import EasySql
 
 
+# 创建用户信息表
+def create_EmployeeInformationTable(db):
+    type_dic = {
+        "序号": "INT",
+        "部门": "VARCHAR(255)",
+        "姓名": "VARCHAR(255)",
+        "性别": "VARCHAR(255)",
+        "职位": "VARCHAR(255)",
+        "工号": "VARCHAR(255)",
+        "状态": "VARCHAR(255)"
+    }
+
+    db.createTable("9员工信息表", type_dic, primary_key="序号")
+
+
 # 创建外贸部客户档案表
 def create_ForeignTradeCustomerRecordsTable(db):
     df = pd.read_excel(
@@ -353,6 +368,7 @@ def create_ProblemFeedbackFlowMeter(db):
 
 if __name__ == '__main__':
     db = EasySql()
+    create_EmployeeInformationTable(db)
     create_Customer_template(db)
     create_authorization_letter(db)
     create_development_schedule(db)

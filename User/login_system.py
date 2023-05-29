@@ -14,9 +14,7 @@ class UserLoginSystem:
         self.window.resizable(False, False)
         self.window.configure(bg="white")
 
-        self.username = None
-        self.login_position = None
-        self.is_leader = False
+        self.user_info = {}
 
         self.login_frame = None
         self.success_frame = None

@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
-from Base.BaseFrame import BaseFrame
+from Base.Base import BaseFrame
 from Database.SQL import change_code
 import qrcode
 from PIL import ImageTk, Image
@@ -11,9 +11,6 @@ import time
 class MaterialsPage(BaseFrame):
     def __init__(self, app, window, show):
         super().__init__(app, window, show)
-        self.app = app
-        self.window = window
-        self.configure(bg="white")
 
         # 创建查询表的滚动条
         scrollbar1 = ttk.Scrollbar(self)
