@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import ttk
 from Database.SQL import change_code
 from Base.Base import BaseFrame
 
@@ -6,9 +7,14 @@ from Base.Base import BaseFrame
 class InformationPage(BaseFrame):
     def __init__(self, app, window, show):
         super().__init__(app, window, show)
-
-        # 创建信息标签
-        self.info_labels = {}
+        # 创建表格
+        self.treeview = ttk.Treeview(self, show="headings")
+        self.treeview["columns"] = ("属性", "值")
+        self.treeview.heading("属性", text="属性")
+        self.treeview.heading("值", text="值")
+        self.treeview.column("属性", width=100, anchor="center")
+        self.treeview.column("值", width=200, anchor="w")
+        self.treeview.grid(row=0, column=0, sticky="nsew")
 
         if show:
             self.show()
@@ -19,47 +25,29 @@ class InformationPage(BaseFrame):
         self.show_basic_info()
 
     def show_basic_info(self):
-        # 清除
-        self.clear_info_labels()
+        # 清空表格
+        self.treeview.delete(*self.treeview.get_children())
 
         # 查询基本信息
-        sql = f"""
-        SELECT 部门, 姓名, 性别, 职位, 工号, 状态
-        FROM [9员工信息表]
-        WHERE 工号 = '{self.app.user_info['id']}'
-        """
+        sql = f"SELECT 部门, 姓名, 性别, 职位, 工号, 状态 FROM [9员工信息表] WHERE 工号 = '{self.app.user_info['id']}'"
         self.app.db.execute(sql)
         info = self.app.db.cursor.fetchone()
 
         if info:
-            # Convert encoding if necessary
-            info = change_code(info)
-            info_data = {
-                "部门": info[0],
-                "姓名": info[1],
-                "性别": info[2],
-                "职位": info[3],
-                "工号": info[4],
-                "状态": info[5]
-            }
-        else:
-            info_data = {
-                "部门": '',
-                "姓名": '',
-                "性别": '',
-                "职位": '',
-                "工号": '',
-                "状态": ''
-            }
+            info = list(change_code(info))
+            info[0] = self.app.user_info['login_depart']
+            info[3] = self.app.user_info['login_position']
+            info[-1] = self.app.user_info['is_leader']
+            info_fields = ["部门", "姓名", "性别", "职位", "工号", "状态"]
+            for field, value in zip(info_fields, info):
+                self.treeview.insert("", "end", values=(field, value))
 
-        # Display employee basic information using labels
-        row = 0
-        for key, value in info_data.items():
-            label = tk.Label(self, text=f"{key}: {value}", bg="white")
-            label.grid(row=row, column=0, sticky="w")
-            self.info_labels[key] = label
-            row += 1
+        # 自动调整表格高度
+        self.treeview.bind("<Configure>", self.adjust_treeview_height)
+
+    def adjust_treeview_height(self, event):
+        height = self.treeview.winfo_height()
+        self.treeview.configure(height=height)
 
     def clear_info_labels(self):
-        for label in self.info_labels.values():
-            label.grid_forget()
+        self.treeview.delete(*self.treeview.get_children())

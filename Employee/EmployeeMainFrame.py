@@ -2,6 +2,7 @@ import tkinter as tk
 from Base.Base import BaseFrame
 from Employee.PageFrame.InformationPage import InformationPage
 from Employee.PageFrame.WMCustomerPage import WMCustomerPage
+from Employee.PageFrame.YFCustomerPage import YFCustomerFlowUpPage, YFCustomerRecordPage, AuthorizationPage
 
 
 class EmployeeMainFrame(BaseFrame):
@@ -33,6 +34,18 @@ class EmployeeMainFrame(BaseFrame):
             self.wm_customer_page = WMCustomerPage(self.app, self, show=False)
             self.pages.append(self.wm_customer_page)
             menu_names.append('外贸部客户档案表')
+        if self.app.user_info['login_depart'] == 'YF':
+            self.yf_customer_flow_up_page = YFCustomerFlowUpPage(self.app, self, show=False)
+            self.pages.append(self.yf_customer_flow_up_page)
+            menu_names.append('研部客户对接表')
+
+            self.yf_customer_record_page = YFCustomerRecordPage(self.app, self, show=False)
+            self.pages.append(self.yf_customer_record_page)
+            menu_names.append('研部客户流水表')
+
+            self.authorization_page = AuthorizationPage(self.app, self, show=False)
+            self.pages.append(self.authorization_page)
+            menu_names.append('授权书总表')
 
         menu_names.append('退出登录')
 
@@ -44,6 +57,12 @@ class EmployeeMainFrame(BaseFrame):
             self.information_page.show()
         elif page_name == "外贸部客户档案表":
             self.wm_customer_page.show()
+        elif page_name == "研部客户对接表":
+            self.yf_customer_flow_up_page.show()
+        elif page_name == "研部客户流水表":
+            self.yf_customer_record_page.show()
+        elif page_name == "授权书总表":
+            self.authorization_page.show()
         elif page_name == "退出登录":
             self.app.show_employee_login_frame()
             self.hide()

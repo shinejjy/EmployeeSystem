@@ -1,57 +1,64 @@
 import tkinter as tk
 from tkinter import ttk
+from tkinter.font import Font
 
 
-class EditableTreeview(ttk.Treeview):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.bind('<Double-1>', self.edit_cell)
-        self.entry = None
-        self.entry_index = None
+def auto_adjust_width(treeview):
+    # 获取所有列
+    columns = treeview["columns"]
 
-    def edit_cell(self, event):
-        # 获取双击的单元格位置
-        cell = self.identify('item', event.x, event.y)
-        column = self.identify('column', event.x, event.y)
-        if cell and column:
-            value = self.item(cell)['values'][int(column[1:]) - 1]
-            # 创建编辑框并定位到双击的单元格
-            self.edit_entry(cell, column, value)
+    # 遍历每一列
+    for column in columns:
+        # 设置列宽为列标题的宽度
+        treeview.column(column, width=Font().measure(column))
 
-    def edit_entry(self, cell, column, value):
-        # 如果已存在编辑框，先销毁
-        if self.entry:
-            self.entry.destroy()
+        for item in treeview.get_children():
+            print(treeview.bbox(item, column).keys)
 
-        # 获取列的宽度
-        column_width = self.column(column)["width"]
+        max_width = max(
+            treeview.column(column)["width"]
+            for item in treeview.get_children()
+        )
 
-        # 创建编辑框并定位
-        x, y, _, _ = self.bbox(cell, column)
-        entry_text = tk.StringVar()
-        self.entry = tk.Entry(self, textvariable=entry_text)
-        entry_text.set(value)
-        self.entry.place(x=x, y=y, width=column_width)
-        self.entry.focus_set()
-        self.entry.bind('<Return>', lambda event: self.save_entry(cell, column))
-        self.entry.bind('<Escape>', lambda event: self.cancel_edit())
+        # 更新列宽度
+        treeview.column(column, width=max_width)
 
-        # 记录编辑的单元格位置
-        self.entry_index = (cell, column)
+def auto_adjust_height(treeview):
+    # 获取所有列
+    columns = treeview["columns"]
 
-    def save_entry(self, cell, column):
-        value = self.entry.get()
-        self.set(cell, column, value)
+    # 获取最高的单元格内容高度
+    max_height = max(
+        treeview.bbox(item, column)["height"]
+        for item in treeview.get_children()
+        for column in columns
+    )
 
-        # 在这里添加将修改保存到数据库的逻辑
-        # 根据cell和column获取对应的数据，并将修改的值保存到数据库
+    # 设置每一行的高度为最高单元格内容高度
+    treeview.configure(height=max_height + 2)
 
-        self.entry.destroy()
-        self.entry = None
-        self.entry_index = None
+# 创建一个示例窗口
+root = tk.Tk()
 
-    def cancel_edit(self):
-        if self.entry:
-            self.entry.destroy()
-            self.entry = None
-            self.entry_index = None
+# 创建一个Treeview对象
+treeview = ttk.Treeview(root)
+
+# 添加列和设置标题
+treeview["columns"] = ("column1", "column2", "column3")
+treeview.heading("column1", text="Column 1")
+treeview.heading("column2", text="Column 2")
+treeview.heading("column3", text="Column 3")
+
+# 添加示例数据
+for i in range(10):
+    treeview.insert("", "end", text="Item {}".format(i), values=("Value 1", "Value 2", "Value 3"))
+
+# 自动调节列宽和列高
+auto_adjust_width(treeview)
+auto_adjust_height(treeview)
+
+# 显示Treeview
+treeview.pack()
+
+# 进入主循环
+root.mainloop()
