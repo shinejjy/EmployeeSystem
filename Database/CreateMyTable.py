@@ -84,7 +84,7 @@ def create_ForeignTradeCustomerRecordsTable(db):
 
 # 创建客户流水表
 def create_CustomerRecordsTable(db):
-    table_name = "CustomerRecordsTable"
+    table_name = "3研部客户流水表"
     type_dic = {
         "SalesDepartment": "VARCHAR(255)",
         "Province": "VARCHAR(255)",
@@ -123,7 +123,7 @@ def create_CustomerRecordsTable(db):
 # 创建客户跟进表
 def create_CustomerFlowUpTable(db):
     # 定义表格名和字段类型字典
-    table_name = "CustomerFlowUpTable"
+    table_name = "3研部客户对接表"
     type_dic = {
         "Recorder": "VARCHAR(255)",
         "ActiveOrPassive": "VARCHAR(255)",
@@ -155,7 +155,7 @@ def create_CustomerFlowUpTable(db):
 # 创建研发客户档案表
 def create_Customer_template(db):
     # 定义表名和字段名
-    table_name = '研发客户档案表A首部'
+    table_name = '4研发客户档案表A首部'
     columns = {
         '销售部': 'VARCHAR(255)',
         '省份': 'VARCHAR(255)',
@@ -190,7 +190,7 @@ def create_Customer_template(db):
     foreign_keys = {
         "企业名称": "研发客户档案表A首部(企业名称)"
     }
-    db.createTable("研发客户档案表B客户信息", type_dict, foreign_keys=foreign_keys)
+    db.createTable("4研发客户档案表B客户信息", type_dict, foreign_keys=foreign_keys)
 
     # 创建 "研发客户档案表赠样记录" 表
     type_dict = {
@@ -205,7 +205,7 @@ def create_Customer_template(db):
     foreign_keys = {
         "企业名称": "研发客户档案表A首部(企业名称)"
     }
-    db.createTable("研发客户档案表C赠样记录", type_dict, foreign_keys=foreign_keys)
+    db.createTable("4研发客户档案表C赠样记录", type_dict, foreign_keys=foreign_keys)
 
     # 创建 "研发客户档案表销售数据" 表
     type_dict = {
@@ -222,13 +222,13 @@ def create_Customer_template(db):
     foreign_keys = {
         "企业名称": "研发客户档案表A首部(企业名称)"
     }
-    db.createTable("研发客户档案表D销售数据", type_dict, foreign_keys=foreign_keys)
+    db.createTable("4研发客户档案表D销售数据", type_dict, foreign_keys=foreign_keys)
 
 
 # 创建授权书总表
 def create_authorization_letter(db):
     # 定义表名和字段名及其数据类型
-    table_name = "授权书总表"
+    table_name = "5授权书总表"
     columns = {
         "开具月份": "VARCHAR(7)",
         "品种": "VARCHAR(255)",
@@ -263,7 +263,7 @@ def create_development_schedule(db):
         "客户名称": "VARCHAR(255)",
         "客户来源": "VARCHAR(255)"
     }
-    db.createTable("客户开发进度表_A客户情况", type_dict, primary_key=["开发状态信息", "序号"])
+    db.createTable("6客户开发进度表_A客户情况", type_dict, primary_key=["开发状态信息", "序号"])
 
     # 创建 "客户开发进度表_项目情况" 表格
     type_dict = {
@@ -291,7 +291,7 @@ def create_development_schedule(db):
         "客户重要程度": "VARCHAR(255)"
     }
     primary_key = ["开发状态", "序号"]
-    db.createTable("客户开发进度表_B项目情况", type_dict, primary_key=primary_key)
+    db.createTable("6客户开发进度表_B项目情况", type_dict, primary_key=primary_key)
 
     # 创建 "客户开发进度表_项目跟进" 表格
     type_dict = {
@@ -310,7 +310,7 @@ def create_development_schedule(db):
         "备注_现状简报": "VARCHAR(255)"
     }
     primary_key = ["开发状态", "序号"]
-    db.createTable("客户开发进度表_C项目跟进", type_dict, primary_key=primary_key)
+    db.createTable("6客户开发进度表_C项目跟进", type_dict, primary_key=primary_key)
 
     # 创建 "客户开发进度表_授权书情况" 表格
     type_dict = {
@@ -321,7 +321,7 @@ def create_development_schedule(db):
         "开具时间": "DATE"
     }
     primary_key = ["开发状态", "序号"]
-    db.createTable("客户开发进度表_D授权书情况", type_dict, primary_key=primary_key)
+    db.createTable("6客户开发进度表_D授权书情况", type_dict, primary_key=primary_key)
 
     # 创建 "客户开发进度表_落地转移情况" 表格
     type_dict = {
@@ -333,7 +333,7 @@ def create_development_schedule(db):
         "移交时间": "DATE"
     }
     primary_key = ["开发状态", "序号"]
-    db.createTable("客户开发进度表_E落地转移情况", type_dict, primary_key=primary_key)
+    db.createTable("6客户开发进度表_E落地转移情况", type_dict, primary_key=primary_key)
 
     # 创建 "客户开发进度表_进度描述" 表格
     type_dict = {
@@ -346,7 +346,7 @@ def create_development_schedule(db):
             field_type = "VARCHAR(255)"
             type_dict[field_name] = field_type
     primary_key = ["开发状态", "序号"]
-    db.createTable("客户开发进度表_F进度描述", type_dict, primary_key=primary_key)
+    db.createTable("6客户开发进度表_F进度描述", type_dict, primary_key=primary_key)
 
 
 def create_ProblemFeedbackFlowMeter(db):
@@ -363,7 +363,133 @@ def create_ProblemFeedbackFlowMeter(db):
         "详情": "VARCHAR(255)"
     }
 
-    db.createTable("产品问题反馈流水表", type_dict)
+    db.createTable("7产品问题反馈流水表", type_dict)
+
+
+def create_internal_trade_ledger_table(db):
+    table_name = "8内贸部台帐总表"
+    type_dic = {
+        "年份": "INT",
+        "序号": "INT",
+        "下订单日期 20XX.XX": "DATE",
+        "销售日期 20XX.XX": "DATE",
+        "合同编号": "VARCHAR(255)",
+        "是否回传合同": "VARCHAR(255)",
+        "区域/部门": "VARCHAR(255)",
+        "省份": "VARCHAR(255)",
+        "城市": "VARCHAR(255)",
+        "年": "INT",
+        "月": "INT",
+        "行业分类": "VARCHAR(255)",
+        "产品使用性质": "VARCHAR(255)",
+        "单位名称": "VARCHAR(255)",
+        "品名": "VARCHAR(255)",
+        "型号": "VARCHAR(255)",
+        "编码": "VARCHAR(255)",
+        "规格": "VARCHAR(255)",
+        "现款销售-数量": "INT",
+        "现款销售-单价（元）": "DECIMAL(10,2)",
+        "现款销售-总金额": "DECIMAL(10,2)",
+        "应收账款销售-数量": "INT",
+        "应收账款销售-单价（元）": "DECIMAL(10,2)",
+        "应收账款销售-增加额（借）": "DECIMAL(10,2)",
+        "应收账款销售-减少额（贷）": "DECIMAL(10,2)",
+        "应收账款销售-余额": "DECIMAL(10,2)",
+        "订单金额": "DECIMAL(10,2)",
+        "回款金额": "DECIMAL(10,2)",
+        "一次": "VARCHAR(255)",
+        "新": "VARCHAR(255)",
+        "二次": "VARCHAR(255)",
+        "未收款": "DECIMAL(10,2)",
+        "收款日期": "DATE",
+        "老": "VARCHAR(255)",
+        "业务员": "VARCHAR(255)",
+        "承兑金额": "DECIMAL(10,2)",
+        "现金": "DECIMAL(10,2)",
+        "日期": "DATE",
+        "发票号": "VARCHAR(255)",
+        "发票单号": "VARCHAR(255)",
+        "销售月份": "VARCHAR(255)",
+        "客户性质": "VARCHAR(255)",
+        "物流发运日期": "DATE",
+        "运单号": "VARCHAR(255)",
+        "单价低于当期版本价目表标“低”标识": "VARCHAR(255)"
+    }
+
+    # Set the primary key
+    primary_key = "序号"
+
+    # Create the table
+    db.createTable(table_name, type_dic, primary_key)
+
+
+def create_outer_trade_ledger_table(db):
+    # Define the table name
+    table_name = "[8外贸部台账总表]"
+
+    # Define the field types dictionary
+    type_dic = {
+        "序号": "INT",
+        "年份": "INT",
+        "下订单日期20XX.XX": "VARCHAR(255)",
+        "销售日期20XX.XX": "VARCHAR(255)",
+        "合同编号": "VARCHAR(255)",
+        "是否报关": "VARCHAR(255)",
+        "其他": "VARCHAR(255)",
+        "国家/省份": "VARCHAR(255)",
+        "性质": "VARCHAR(255)",
+        "开发日期-年": "INT",
+        "开发日期-月": "INT",
+        "单位名称": "VARCHAR(255)",
+        "品名": "VARCHAR(255)",
+        "型号": "VARCHAR(255)",
+        "编码": "VARCHAR(255)",
+        "规格": "VARCHAR(255)",
+        "现款销售-数量": "INT",
+        "现款销售-单价（USD）": "DECIMAL(10,2)",
+        "现款销售-单价（人民币）": "DECIMAL(10,2)",
+        "现款销售-总额（USD）": "DECIMAL(10,2)",
+        "现款销售-总额（人民币）": "DECIMAL(10,2)",
+        "应收账款销售-数量": "INT",
+        "应收账款销售-单价（USD）": "DECIMAL(10,2)",
+        "应收账款销售-单价（人民币）": "DECIMAL(10,2)",
+        "应收账款销售-总额（借）（USD）": "DECIMAL(10,2)",
+        "应收账款销售-总额（借）（人民币）": "DECIMAL(10,2)",
+        "应收账款销售-总额（贷）（USD）": "DECIMAL(10,2)",
+        "应收账款销售-总额（贷）（人民币）": "DECIMAL(10,2)",
+        "应收账款销售-余额（USD）": "DECIMAL(10,2)",
+        "应收账款销售-余额（人民币）": "DECIMAL(10,2)",
+        "订单金额（USD）": "DECIMAL(10,2)",
+        "订单金额（人民币）": "DECIMAL(10,2)",
+        "回款金额（USD）": "DECIMAL(10,2)",
+        "回款金额（人民币）": "DECIMAL(10,2)",
+        "一次": "VARCHAR(255)",
+        "客户类型": "VARCHAR(255)",
+        "未收款（USD）": "DECIMAL(10,2)",
+        "未收款（人民币）": "DECIMAL(10,2)",
+        "业务员": "VARCHAR(255)",
+        "收款日期（USD）": "VARCHAR(255)",
+        "收款日期（人民币）": "VARCHAR(255)",
+        "收款日期-日期": "VARCHAR(255)",
+        "发票号": "VARCHAR(255)",
+        "发票单号": "VARCHAR(255)",
+        "销售月份": "VARCHAR(255)",
+        "费用-国际运费（RMB)": "DECIMAL(10,2)",
+        "费用-国际运费（USD)": "DECIMAL(10,2)",
+        "费用-港杂费": "DECIMAL(10,2)",
+        "费用-合计": "DECIMAL(10,2)",
+        "物流发运时间": "VARCHAR(255)",
+        "运单号": "VARCHAR(255)",
+        "单价低于当期版本价目表标“低”标识": "VARCHAR(10)",
+        "退税额-退税额": "DECIMAL(10,2)",
+        "退税额-汇率": "DECIMAL(10,2)"
+    }
+
+    # Set the primary key
+    primary_key = ["序号", "销售月份"]
+
+    # Create the table
+    db.createTable(table_name, type_dic, primary_key)
 
 
 if __name__ == '__main__':
@@ -373,3 +499,5 @@ if __name__ == '__main__':
     create_authorization_letter(db)
     create_development_schedule(db)
     create_ProblemFeedbackFlowMeter(db)
+    create_internal_trade_ledger_table(db)
+    create_outer_trade_ledger_table(db)

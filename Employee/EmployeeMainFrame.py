@@ -3,6 +3,9 @@ from Base.Base import BaseFrame
 from Employee.PageFrame.InformationPage import InformationPage
 from Employee.PageFrame.WMCustomerPage import WMCustomerPage
 from Employee.PageFrame.YFCustomerPage import YFCustomerFlowUpPage, YFCustomerRecordPage, AuthorizationPage
+from Employee.PageFrame.CustomerDevelopSchedule import CustomerDevelopSchedule
+from Employee.PageFrame.ProductFeedBackPage import ProductFeedBackPage
+from Employee.PageFrame.NWCustomerPage import NWCustomerPage
 
 
 class EmployeeMainFrame(BaseFrame):
@@ -21,7 +24,7 @@ class EmployeeMainFrame(BaseFrame):
         self.menu_buttons = []
         for name in menu_names:
             button = tk.Button(self.menu_frame, text=name, command=lambda n=name: self.switch_page(n))
-            button.pack(side=tk.LEFT, padx=0, ipadx=20)
+            button.pack(side=tk.LEFT, padx=0)
             self.menu_buttons.append(button)
 
     def create_all_pages(self):
@@ -30,10 +33,13 @@ class EmployeeMainFrame(BaseFrame):
         menu_names.append('基本信息')
         self.pages.append(self.information_page)
 
+        # 外贸部权限
         if self.app.user_info['login_depart'] == 'WM':
             self.wm_customer_page = WMCustomerPage(self.app, self, show=False)
             self.pages.append(self.wm_customer_page)
             menu_names.append('外贸部客户档案表')
+
+        # 研发服务部权限
         if self.app.user_info['login_depart'] == 'YF':
             self.yf_customer_flow_up_page = YFCustomerFlowUpPage(self.app, self, show=False)
             self.pages.append(self.yf_customer_flow_up_page)
@@ -46,6 +52,24 @@ class EmployeeMainFrame(BaseFrame):
             self.authorization_page = AuthorizationPage(self.app, self, show=False)
             self.pages.append(self.authorization_page)
             menu_names.append('授权书总表')
+
+        # 销售部权限
+        if self.app.user_info['login_depart'] == 'XS':
+            self.customer_develop_schedule = CustomerDevelopSchedule(self.app, self, show=False)
+            self.pages.append(self.customer_develop_schedule)
+            menu_names.append('客户开发进度表')
+
+        # 产品管理部权限
+        if self.app.user_info['login_depart'] == 'CP':
+            self.product_feedback_page = ProductFeedBackPage(self.app, self, show=False)
+            self.pages.append(self.product_feedback_page)
+            menu_names.append('产品问题反馈流水表')
+
+        # 内务部权限
+        if self.app.user_info['login_depart'] == 'NW':
+            self.nw_customer_page = NWCustomerPage(self.app, self, show=False)
+            self.pages.append(self.nw_customer_page)
+            menu_names.append('台账总表')
 
         menu_names.append('退出登录')
 
@@ -63,6 +87,12 @@ class EmployeeMainFrame(BaseFrame):
             self.yf_customer_record_page.show()
         elif page_name == "授权书总表":
             self.authorization_page.show()
+        elif page_name == "客户开发进度表":
+            self.customer_develop_schedule.show()
+        elif page_name == "产品问题反馈流水表":
+            self.product_feedback_page.show()
+        elif page_name == "台账总表":
+            self.nw_customer_page.show()
         elif page_name == "退出登录":
             self.app.show_employee_login_frame()
             self.hide()

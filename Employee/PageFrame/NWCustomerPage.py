@@ -5,26 +5,17 @@ from Base.Base import EditableTreeview, BaseFrame, EditableTable
 from Database.SQL import change_code
 
 
-class CustomerDevelopSchedule(EditableTable):
+class NWCustomerPage(EditableTable):
     def __init__(self, app, window, show):
         table_names = [
-            '6客户开发进度表_A客户情况', '6客户开发进度表_B项目情况', '6客户开发进度表_C项目跟进',
-            '6客户开发进度表_D授权书情况', '6客户开发进度表_E落地转移情况', '6客户开发进度表_F进度描述'
+            '8内贸部台账总表', '8外贸部台账总表'
         ]
-        search_columns = ['负责人'] * 6
-        p_primary_key_tbss = [[0, 1]] * 6
-        p_primary_key_dbss = [[0, 1]] * 6
-        primary_keyss = [['开发状态', ' 序号']] * 6
+        search_columns = ['业务员'] * 2
+        p_primary_key_tbss = [None] * 2
+        p_primary_key_dbss = [None] * 2
+        primary_keyss = [['序号', '销售月份']] * 2
         super().__init__(app, window, show, search_columns, table_names, p_primary_key_dbss,
                          p_primary_key_tbss, primary_keyss, True)
-
-        # 获取所有表格的字段个数
-        self.len_columns = []
-        for table_name in self.table_names:
-            query = f"""SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS 
-            WHERE TABLE_NAME = '{table_name}'"""
-            self.app.db.execute(query)
-            self.len_columns.append(len([column[0] for column in self.app.db.cursor.fetchall()]))
 
     def add_customer(self):
         # 销毁修改框
@@ -39,8 +30,8 @@ class CustomerDevelopSchedule(EditableTable):
 
         # 获取当前最大的序号值
         sql = f"""SELECT MAX(序号)
-         FROM [6客户开发进度表_A客户情况]
-         WHERE 开发状态 = '{status}'
+         FROM [{self.table_info_current['table_name']}]
+         WHERE 销售月份 = '{status}'
          """
         self.app.db.execute(sql)
         result = self.app.db.cursor.fetchone()
@@ -49,15 +40,15 @@ class CustomerDevelopSchedule(EditableTable):
         # 生成新的序号值
         new_index = max_index + 1
 
-        # 在每个表中插入新记录
-        for table_name, len_column in zip(self.table_names, self.len_columns):
-            # 在表格末尾插入空白记录
-            new_customer = [new_index] + [status] + [''] * len_column
-            self.tree.insert("", tk.END, values=new_customer)
+        # 在表格末尾插入空白记录
+        new_customer = [''] * len(self.tree['columns'])
+        new_customer[self.tree['columns'].index('序号')] = new_index
+        new_customer[self.tree['columns'].index('销售月份')] = status
+        self.tree.insert("", tk.END, values=new_customer)
 
-            # 在相应的表中插入新记录
-            sql = f"INSERT INTO [{table_name}] (序号, 开发状态) VALUES ({new_index}, '{status}')"
-            self.app.db.execute(sql)
+        # 在相应的表中插入新记录
+        sql = f"INSERT INTO [{self.table_info_current['table_name']}] (序号, 销售月份) VALUES ({new_index}, '{status}')"
+        self.app.db.execute(sql)
 
         # 更新页面和数据库
         self.show_customer_page()
@@ -69,12 +60,12 @@ class CustomerDevelopSchedule(EditableTable):
         status_var.set(status_options[0])
 
         dialog = tk.Toplevel(self.tree)
-        dialog.title("选择开发状态")
+        dialog.title("填写销售月份")
         dialog.geometry("200x100")
         dialog.transient(self.tree)
         dialog.grab_set()
 
-        label = tk.Label(dialog, text="请选择开发状态：")
+        label = tk.Label(dialog, text="请填写销售月份：")
         label.pack()
 
         combobox = ttk.Combobox(dialog, textvariable=status_var, values=status_options, state="readonly")
@@ -86,7 +77,7 @@ class CustomerDevelopSchedule(EditableTable):
                 dialog.destroy()
                 return selected_status
             else:
-                messagebox.showerror("错误", "无效的开发状态！")
+                messagebox.showerror("错误", "无效的销售月份！")
                 return None
 
         confirm_button = tk.Button(dialog, text="确认", command=confirm)
@@ -109,14 +100,14 @@ class CustomerDevelopSchedule(EditableTable):
         if confirm:
             for item in selected_items:
                 # 获取选中行的数据
-                values = self.tree.item(item)['values'][:2]
-                for table_name in self.table_names:
-                    condition = " AND ".join([f"{primary_key} = '{primary_key_value}'"
-                                              for primary_key, primary_key_value in zip(['开发状态', '序号'], values)])
+                values = [self.tree.item(item)['values'][self.tree['columns'].index('序号')],
+                          self.tree.item(item)['values'][self.tree['columns'].index('销售日期')]]
+                condition = " AND ".join([f"{primary_key} = '{primary_key_value}'"
+                                          for primary_key, primary_key_value in zip(['序号', '销售日期'], values)])
 
-                    # 在数据库中执行删除操作
-                    sql = f"DELETE FROM [{table_name}] WHERE {condition}"
-                    self.app.db.execute(sql)
+                # 在数据库中执行删除操作
+                sql = f"DELETE FROM [{self.table_info_current['table_name']}] WHERE {condition}"
+                self.app.db.execute(sql)
 
                 # 从表格中删除对应行
                 self.tree.delete(item)

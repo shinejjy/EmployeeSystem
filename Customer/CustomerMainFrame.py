@@ -28,7 +28,7 @@ class CustomerMainFrame(BaseFrame):
 
         # 创建菜单按钮
         self.menu_buttons = []
-        menu_names = ["辅料查询", "订购辅料", "开票付款", "订购查询", "统计"]
+        menu_names = ["辅料查询", "订购查询", "统计"]
         for name in menu_names:
             button = tk.Button(self.menu_frame, text=name, command=lambda n=name: self.switch_page(n))
             button.pack(side=tk.LEFT, padx=0, ipadx=20)

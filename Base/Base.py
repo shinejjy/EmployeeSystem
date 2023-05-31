@@ -41,9 +41,9 @@ class EditableTreeview(ttk.Treeview):
         cell = self.identify('item', event.x, event.y)
         column = self.identify('column', event.x, event.y)
         if cell and column:
-            # if self.name and self.search_column:
-            #     if self.name != self.item(cell)['values'][self["columns"].index(self.search_column)]:
-            #         return
+            if self.name and self.search_column:
+                if self.name != self.item(cell)['values'][self["columns"].index(self.search_column)]:
+                    return
             value = self.item(cell)['values'][int(column[1:]) - 1]
             # 创建编辑框并定位到双击的单元格
             self.edit_entry(cell, column, value)
@@ -79,8 +79,8 @@ class EditableTreeview(ttk.Treeview):
             sql = f"""UPDATE {self.table_name} SET {self.column(column)['id']} = '{value}'
             WHERE {self.primary_key} = {primary_key_value}"""
         else:
-            primary_key_values = self.item(cell)['values'[self.p_primary_key_tb]]
-            condition = " AND ".join([f"{primary_key} = {primary_key_value}"
+            primary_key_values = [self.item(cell)['values'][position] for position in self.p_primary_key_tb]
+            condition = " AND ".join([f"{primary_key} = '{primary_key_value}'"
                                       for primary_key, primary_key_value in zip(self.primary_key, primary_key_values)])
             sql = f"""UPDATE {self.table_name} SET {self.column(column)['id']} = '{value}'
             WHERE {condition}"""
@@ -100,7 +100,7 @@ class EditableTreeview(ttk.Treeview):
 class EditableTable(BaseFrame):
     def __init__(self, app, window, show,
                  search_columns, table_names, p_primary_key_dbs,
-                 p_primary_key_tbs, primary_keys):
+                 p_primary_key_tbs, primary_keys, multi_primary=False):
         super().__init__(app, window, show)
         self.table_names = table_names
         self.table_info = [{
@@ -109,9 +109,10 @@ class EditableTable(BaseFrame):
             'p_primary_key_tb': p_primary_key_tb,
             'p_primary_key_db': p_primary_key_db,
             'primary_key': primary_key
-            } for search_column, table_name, p_primary_key_tb, p_primary_key_db, primary_key
+        } for search_column, table_name, p_primary_key_tb, p_primary_key_db, primary_key
             in zip(search_columns, table_names, p_primary_key_tbs, p_primary_key_dbs, primary_keys)]
         self.table_info_current = self.table_info[0]
+        self.multi_primary = multi_primary
 
         self.table_combobox = ttk.Combobox(self, values=table_names)
         self.table_combobox.current(0)  # 默认选择第一个列表
@@ -129,17 +130,19 @@ class EditableTable(BaseFrame):
         scrollbar_x.grid(row=2, column=0, sticky=tk.E + tk.W)
 
         query = f"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{self.table_info_current['table_name']}'"
+        print(query)
         self.app.db.execute(query)
         columns = [column[0] for column in self.app.db.cursor.fetchall()]
-        columns.insert(0, columns.pop())
+        if not self.multi_primary:
+            columns.insert(0, columns.pop())
 
         # 创建查询表格
         self.tree = EditableTreeview(self.app.db, f"[{self.table_info_current['table_name']}]",
                                      self.table_info_current['p_primary_key_tb'],
                                      self.table_info_current['primary_key'],
-                                     self.app.user_info['name'], self.table_info_current['search_column'], self,
-                                     columns=columns, show="headings", yscrollcommand=scrollbar_y.set,
-                                     xscrollcommand=scrollbar_x.set)
+                                     self.app.user_info['name'], self.table_info_current['search_column'],
+                                     self.multi_primary, self, columns=columns, show="headings",
+                                     yscrollcommand=scrollbar_y.set, xscrollcommand=scrollbar_x.set)
         scrollbar_y.config(command=self.tree.yview)
         scrollbar_x.config(command=self.tree.xview)
 
@@ -175,13 +178,16 @@ class EditableTable(BaseFrame):
         else:
             sql = f"SELECT * FROM [{self.table_info_current['table_name']}] WHERE {self.table_info_current['search_column']} = '{self.app.user_info['name']}'"
 
+        print(sql)
         self.app.db.execute(sql)
         customers = self.app.db.cursor.fetchall()
 
         # 将客户档案信息插入表格中
         for customer in customers:
             customer = list(change_code(customer))
-            customer.insert(self.table_info_current['p_primary_key_tb'], customer.pop(self.table_info_current['p_primary_key_db']))
+            if not self.multi_primary:
+                customer.insert(self.table_info_current['p_primary_key_tb'],
+                                customer.pop(self.table_info_current['p_primary_key_db']))
             self.tree.insert("", tk.END, values=customer)
 
         self.update_filter_combobox()
@@ -230,7 +236,8 @@ class EditableTable(BaseFrame):
         # 将客户档案信息插入表格中
         for customer in customers:
             customer = list(change_code(customer))
-            customer.insert(0, customer.pop())
+            if not self.multi_primary:
+                customer.insert(0, customer.pop())
             self.tree.insert("", tk.END, values=customer)
 
     def add_customer(self):
@@ -284,4 +291,20 @@ class EditableTable(BaseFrame):
     def switch_table(self, event=None):
         current_table = self.table_combobox.get()
         self.table_info_current = self.table_info[self.table_names.index(current_table)]
+        self.update_table_frame()
         self.show_customer_page()
+
+    def update_table_frame(self):
+        query = f"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{self.table_info_current['table_name']}'"
+        self.app.db.execute(query)
+        columns = [column[0] for column in self.app.db.cursor.fetchall()]
+        self.tree.configure(columns=columns)
+        # 设置查询表格的表头
+        for col in columns:
+            self.tree.heading(col, text=col)
+            self.tree.column(col, width=80, minwidth=80)
+
+        self.tree.primary_key = self.table_info_current['primary_key']
+        self.tree.p_primary_key_tb = self.table_info_current['p_primary_key_tb']
+        self.tree.search_column = self.table_info_current['search_column']
+        self.tree.table_name = self.table_info_current['table_name']

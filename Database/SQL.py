@@ -40,7 +40,7 @@ class EasySql:
             return
 
         # Construct the CREATE TABLE SQL statement
-        columns = ', '.join([f"{column} {data_type}" for column, data_type in type_dic.items()])
+        columns = ', '.join([f"[{column}] {data_type}" for column, data_type in type_dic.items()])
         if primary_key:
             columns += f", PRIMARY KEY ({primary_key if isinstance(primary_key, str) else ', '.join(primary_key)})"
 
@@ -80,7 +80,6 @@ class EasySql:
 
         # Construct the INSERT INTO SQL statement
         sql = f"INSERT INTO {table_name} VALUES ({values})"
-        print(sql)
 
         # Execute the SQL statement
         self.cursor.execute(sql)
@@ -124,4 +123,4 @@ class EasySql:
 def change_code(info):
     return tuple(
         item.encode('latin1').decode('gbk') if isinstance(item, str) else item for item in info
-    )
+    ) if info else None
