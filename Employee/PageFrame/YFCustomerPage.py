@@ -55,7 +55,7 @@ class AuthorizationPage(EditableTable):
 
             # 创建筛选下拉框
             self.filter_combobox = ttk.Combobox(self, values=list(current_values))
-            self.filter_combobox.grid(row=2, column=0, sticky=tk.N + tk.S)
+            self.filter_combobox.grid(row=3, column=0, sticky=tk.N + tk.S)
             self.filter_combobox.bind("<<ComboboxSelected>>", self.apply_filter)
 
     def apply_filter(self, event=None):

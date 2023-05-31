@@ -1,116 +1,31 @@
+from tkinter import messagebox, ttk
 import tkinter as tk
-from tkinter import ttk, messagebox
 
+from Base.Base import EditableTreeview, BaseFrame
 from Database.SQL import change_code
 
 
-class BaseFrame(tk.Frame):
-    def __init__(self, app, window, show=True, *args, **kwargs):
-        super().__init__(window, *args, **kwargs)
-        self.app = app
-        self.window = window
-        self.configure(bg="white")
-        if not show:
-            self.hide()
-
-    def show(self):
-        self.pack()
-
-    def hide(self):
-        self.pack_forget()
-
-
-class EditableTreeview(ttk.Treeview):
-    def __init__(self, db, table_name, p_primary_key_tb, primary_key,
-                 name=None, search_column=None, multi_keys=False, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.bind('<Double-1>', self.edit_cell)
-        self.entry = None
-        self.entry_index = None
-        self.db = db
-        self.table_name = table_name
-        self.p_primary_key_tb = p_primary_key_tb
-        self.primary_key = primary_key
-        self.multi_keys = multi_keys
-
-        self.name = name
-        self.search_column = search_column
-
-    def edit_cell(self, event):
-        # 获取双击的单元格位置
-        cell = self.identify('item', event.x, event.y)
-        column = self.identify('column', event.x, event.y)
-        if cell and column:
-            # if self.name and self.search_column:
-            #     if self.name != self.item(cell)['values'][self["columns"].index(self.search_column)]:
-            #         return
-            value = self.item(cell)['values'][int(column[1:]) - 1]
-            # 创建编辑框并定位到双击的单元格
-            self.edit_entry(cell, column, value)
-
-    def edit_entry(self, cell, column, value):
-        # 如果已存在编辑框，先销毁
-        if self.entry:
-            self.entry.destroy()
-
-        # 获取列的宽度
-        column_width = self.column(column)["width"]
-
-        # 创建编辑框并定位
-        x, y, _, _ = self.bbox(cell, column)
-        entry_text = tk.StringVar()
-        self.entry = tk.Entry(self, textvariable=entry_text)
-        entry_text.set(value)
-        self.entry.place(x=x, y=y, width=column_width)
-        self.entry.focus_set()
-        self.entry.bind('<Return>', lambda event: self.save_entry(cell, column))
-        self.entry.bind('<Escape>', lambda event: self.cancel_edit())
-
-        # 记录编辑的单元格位置
-        self.entry_index = (cell, column)
-
-    def save_entry(self, cell, column):
-        value = self.entry.get()
-        self.set(cell, column, value)
-
-        if not self.multi_keys:
-            primary_key_value = self.item(cell)['values'][self.p_primary_key_tb]
-            # 构建 UPDATE SQL 语句
-            sql = f"""UPDATE {self.table_name} SET {self.column(column)['id']} = '{value}'
-            WHERE {self.primary_key} = {primary_key_value}"""
-        else:
-            primary_key_values = self.item(cell)['values'[self.p_primary_key_tb]]
-            condition = " AND ".join([f"{primary_key} = {primary_key_value}"
-                                      for primary_key, primary_key_value in zip(self.primary_key, primary_key_values)])
-            sql = f"""UPDATE {self.table_name} SET {self.column(column)['id']} = '{value}'
-            WHERE {condition}"""
-
-        self.db.execute(sql)
-        self.entry.destroy()
-        self.entry = None
-        self.entry_index = None
-
-    def cancel_edit(self):
-        if self.entry:
-            self.entry.destroy()
-            self.entry = None
-            self.entry_index = None
-
-
-class EditableTable(BaseFrame):
-    def __init__(self, app, window, show,
-                 search_columns, table_names, p_primary_key_dbs,
-                 p_primary_key_tbs, primary_keys):
+class CustomerDevelopSchedule(BaseFrame):
+    def __init__(self, app, window, show, ):
         super().__init__(app, window, show)
+        table_names = [
+            '6客户开发进度表_A客户情况', '6客户开发进度表_B项目情况', '6客户开发进度表_C项目跟进',
+            '6客户开发进度表_D授权书情况', '6客户开发进度表_E落地转移情况', '6客户开发进度表_F进度描述'
+        ]
+        search_columns = ['负责人'] * 6
+        p_primary_key_tbss = [[0, 1]] * 6
+        p_primary_key_dbss = [[0, 1]] * 6
+        primary_keyss = [['开发状态', ' 序号']] * 6
+
         self.table_names = table_names
         self.table_info = [{
             'search_column': search_column,
             'table_name': table_name,
-            'p_primary_key_tb': p_primary_key_tb,
-            'p_primary_key_db': p_primary_key_db,
-            'primary_key': primary_key
-            } for search_column, table_name, p_primary_key_tb, p_primary_key_db, primary_key
-            in zip(search_columns, table_names, p_primary_key_tbs, p_primary_key_dbs, primary_keys)]
+            'p_primary_key_tbs': p_primary_key_tbs,
+            'p_primary_key_dbs': p_primary_key_dbs,
+            'primary_keys': primary_keys
+        } for search_column, table_name, p_primary_key_tbs, p_primary_key_dbs, primary_keys
+            in zip(search_columns, table_names, p_primary_key_tbss, p_primary_key_dbss, primary_keyss)]
         self.table_info_current = self.table_info[0]
 
         self.table_combobox = ttk.Combobox(self, values=table_names)
@@ -131,12 +46,11 @@ class EditableTable(BaseFrame):
         query = f"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{self.table_info_current['table_name']}'"
         self.app.db.execute(query)
         columns = [column[0] for column in self.app.db.cursor.fetchall()]
-        columns.insert(0, columns.pop())
 
         # 创建查询表格
         self.tree = EditableTreeview(self.app.db, f"[{self.table_info_current['table_name']}]",
-                                     self.table_info_current['p_primary_key_tb'],
-                                     self.table_info_current['primary_key'],
+                                     self.table_info_current['p_primary_key_tbs'],
+                                     self.table_info_current['primary_keys'],
                                      self.app.user_info['name'], self.table_info_current['search_column'], self,
                                      columns=columns, show="headings", yscrollcommand=scrollbar_y.set,
                                      xscrollcommand=scrollbar_x.set)
@@ -181,7 +95,6 @@ class EditableTable(BaseFrame):
         # 将客户档案信息插入表格中
         for customer in customers:
             customer = list(change_code(customer))
-            customer.insert(self.table_info_current['p_primary_key_tb'], customer.pop(self.table_info_current['p_primary_key_db']))
             self.tree.insert("", tk.END, values=customer)
 
         self.update_filter_combobox()
@@ -230,7 +143,6 @@ class EditableTable(BaseFrame):
         # 将客户档案信息插入表格中
         for customer in customers:
             customer = list(change_code(customer))
-            customer.insert(0, customer.pop())
             self.tree.insert("", tk.END, values=customer)
 
     def add_customer(self):
@@ -284,4 +196,19 @@ class EditableTable(BaseFrame):
     def switch_table(self, event=None):
         current_table = self.table_combobox.get()
         self.table_info_current = self.table_info[self.table_names.index(current_table)]
+        self.update_table_frame()
         self.show_customer_page()
+
+    def update_table_frame(self):
+        query = f"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{self.table_info_current['table_name']}'"
+        self.app.db.execute(query)
+        columns = [column[0] for column in self.app.db.cursor.fetchall()]
+        # 设置查询表格的表头
+        for col in columns:
+            self.tree.heading(col, text=col)
+            self.tree.column(col, width=80, minwidth=80)
+
+        self.tree.primary_key = self.table_info_current['primary_keys']
+        self.tree.p_primary_key_tb = self.table_info_current['p_primary_key_tbs']
+        self.tree.search_column = self.table_info_current['search_column']
+        self.tree.table_name = self.table_info_current['table_name']
