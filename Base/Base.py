@@ -76,14 +76,16 @@ class EditableTreeview(ttk.Treeview):
         if not self.multi_keys:
             primary_key_value = self.item(cell)['values'][self.p_primary_key_tb]
             # 构建 UPDATE SQL 语句
-            sql = f"""UPDATE {self.table_name} SET {self.column(column)['id']} = '{value}'
-            WHERE {self.primary_key} = {primary_key_value}"""
+            sql = f"""UPDATE [{self.table_name}] SET {self.column(column)['id']} = '{value}'
+            WHERE {self.primary_key} = '{primary_key_value}'"""
         else:
             primary_key_values = [self.item(cell)['values'][position] for position in self.p_primary_key_tb]
             condition = " AND ".join([f"{primary_key} = '{primary_key_value}'"
                                       for primary_key, primary_key_value in zip(self.primary_key, primary_key_values)])
-            sql = f"""UPDATE {self.table_name} SET {self.column(column)['id']} = '{value}'
+            sql = f"""UPDATE [{self.table_name}] SET {self.column(column)['id']} = '{value}'
             WHERE {condition}"""
+
+        print(sql)
 
         self.db.execute(sql)
         self.entry.destroy()
@@ -130,7 +132,6 @@ class EditableTable(BaseFrame):
         scrollbar_x.grid(row=2, column=0, sticky=tk.E + tk.W)
 
         query = f"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{self.table_info_current['table_name']}'"
-        print(query)
         self.app.db.execute(query)
         columns = [column[0] for column in self.app.db.cursor.fetchall()]
         if not self.multi_primary:
@@ -178,7 +179,6 @@ class EditableTable(BaseFrame):
         else:
             sql = f"SELECT * FROM [{self.table_info_current['table_name']}] WHERE {self.table_info_current['search_column']} = '{self.app.user_info['name']}'"
 
-        print(sql)
         self.app.db.execute(sql)
         customers = self.app.db.cursor.fetchall()
 

@@ -1,4 +1,5 @@
 import tkinter as tk
+from datetime import datetime
 from tkinter import ttk
 from tkinter import messagebox
 from Base.Base import BaseFrame
@@ -14,21 +15,21 @@ class MaterialsPage(BaseFrame):
 
         # 创建查询表的滚动条
         scrollbar1 = ttk.Scrollbar(self)
-        scrollbar1.grid(row=0, column=1, sticky=tk.N + tk.S)
+        scrollbar1.grid(row=1, column=1, sticky=tk.N + tk.S)
 
         # 创建查询表格
-        columns1 = ("辅料编号", "辅料名称", "辅料单价", "点击选购吧！")
+        columns1 = ("辅料编号", "辅料名称", "辅料规格",  "辅料单价", "点击选购吧！")
         self.searchTree = ttk.Treeview(self, columns=columns1, show="headings", yscrollcommand=scrollbar1.set)
         scrollbar1.config(command=self.searchTree.yview)
         # 设置查询表格的表头
         for col in columns1:
             self.searchTree.heading(col, text=col)
-            self.searchTree.column(col, width=125)
-        self.searchTree.grid(row=0, column=0, sticky=tk.N + tk.S + tk.E + tk.W)
+            self.searchTree.column(col, width=100)
+        self.searchTree.grid(row=1, column=0, sticky=tk.N + tk.S + tk.E + tk.W)
 
         # 创建订购表的滚动条
         scrollbar2 = ttk.Scrollbar(self)
-        scrollbar2.grid(row=1, column=1, sticky=tk.N + tk.S)
+        scrollbar2.grid(row=2, column=1, sticky=tk.N + tk.S)
 
         # 创建订购表格
         columns2 = ("辅料编号", "辅料名称", "辅料单价", "选购数量", "价格")
@@ -38,17 +39,17 @@ class MaterialsPage(BaseFrame):
         for col in columns2:
             self.purchaseTree.heading(col, text=col)
             self.purchaseTree.column(col, width=100)
-        self.purchaseTree.grid(row=1, column=0, sticky=tk.N + tk.S + tk.E + tk.W)
+        self.purchaseTree.grid(row=2, column=0, sticky=tk.N + tk.S + tk.E + tk.W)
 
         # 创建总价显示
         self.priceLabel = tk.Label(self, text="总和：0.0元", background='white', font=("Arial", 20))
-        self.priceLabel.grid(row=2, column=0, sticky=tk.E)
+        self.priceLabel.grid(row=3, column=0, sticky=tk.E)
 
         # 创建支付按钮
         self.payButton = tk.Button(self, text="支付", font=("Arial", 20), bg="blue", fg="white",
                                    command=self.open_payment_window)
 
-        self.payButton.grid(row=3, column=0, sticky=tk.E)
+        self.payButton.grid(row=4, column=0)
 
         # 设置行列权重和填充
         self.grid_rowconfigure(0, weight=1)
@@ -57,6 +58,18 @@ class MaterialsPage(BaseFrame):
         self.grid_rowconfigure(3, weight=1)
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=0)
+
+        # 创建查询输入框和按钮
+        self.search_label = tk.Label(self, text="查询：")
+        self.search_label.grid(row=0, column=0, sticky=tk.W)
+
+        self.search_text = tk.StringVar()
+        self.search_entry = tk.Entry(self, textvariable=self.search_text)
+        self.search_entry.grid(row=0, column=0, padx=35, sticky=tk.W)
+        self.search_entry.bind("<Return>", self.search_materials)
+
+        # 绑定表格的双击事件
+        self.searchTree.bind("<Double-1>", self.show_material_details)
 
         self.show_materials_page()
 
@@ -67,29 +80,61 @@ class MaterialsPage(BaseFrame):
         self.searchTree.delete(*self.searchTree.get_children())
 
         # 查询可订购辅料的详细情况
-        sql = "SELECT PNO, PNA, PPR FROM MedicinalIngredients"
+        sql = "SELECT 规格编码, 品名, 规格, 单价 FROM [1药用辅料产品规格编码设置表]"
         self.app.db.execute(sql)
         materials = self.app.db.cursor.fetchall()
 
         # 将辅料信息插入表格中
         for material in materials:
-            material = change_code(material)
-            pno, pna, ppr = material
-            item_id = self.searchTree.insert("", tk.END, values=(pno, pna, ppr, "[选购]",))
+            material = list(change_code(material))
+            material.append(['[选购]'])
+            item_id = self.searchTree.insert("", tk.END, values=material)
 
             # 为选购按钮绑定点击事件处理函数
-            self.searchTree.set(item_id, "#4")  # 存储辅料编号
+            self.searchTree.set(item_id, "#5")  # 存储辅料编号
 
         # 绑定选购按钮的点击事件
         self.searchTree.bind("<Button-1>", self.select_material)
 
+    def show_material_details(self, event):
+        # 获取双击所选行的辅料编号
+        selected_item = self.searchTree.focus()
+        material_id = self.searchTree.item(selected_item)["values"][0]
+
+        # 查询辅料详细信息
+        sql = f"SELECT * FROM [1药用辅料产品规格编码设置表] WHERE 规格编码 = '{material_id}'"
+        self.app.db.execute(sql)
+        material_details = self.app.db.cursor.fetchone()
+        material_details = change_code(material_details)
+
+        # 创建辅料详细信息窗口
+        material_details_window = tk.Toplevel(self.window)
+        material_details_window.title("辅料详细信息")
+        material_details_window.geometry("400x300")
+
+        # 设置网格列自适应
+        material_details_window.grid_columnconfigure(1, weight=1)
+
+        # 动态创建标签和文本框显示辅料详细信息
+        query = f"SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '1药用辅料产品规格编码设置表'"
+        self.app.db.execute(query)
+        labels = [column[0] for column in self.app.db.cursor.fetchall()]
+        for i, label in enumerate(labels):
+            label_text = f"{label}:"
+            tk.Label(material_details_window, text=label_text).grid(row=i, column=0, sticky=tk.W)
+            entry_text = material_details[i]
+            text_box = tk.Text(material_details_window, height=2, wrap=tk.WORD, width=40)
+            text_box.insert(tk.END, entry_text)
+            text_box.config(state=tk.DISABLED)
+            text_box.grid(row=i, column=1, sticky=tk.W)
+
     def select_material(self, event):
         item = self.searchTree.identify_row(event.y)
         column = self.searchTree.identify_column(event.x)
-        if item and column == "#4":
+        if item and column == "#5":
             pno = self.searchTree.set(item, "#1")
             pna = self.searchTree.set(item, "#2")
-            ppr = self.searchTree.set(item, "#3")
+            ppr = self.searchTree.set(item, "#4")
             self.open_purchase_window(pno, pna, ppr)
 
     def open_purchase_window(self, pno, pna, ppr):
@@ -196,15 +241,34 @@ class MaterialsPage(BaseFrame):
                     return
                 result_label.config(text="支付成功")
 
-                order_info = {
-                    "timestamp": time.time(),
-                    "total_price": total_price,
-                    "purchase_list": self.get_purchase_list()
-                }
-                self.window.order_list.append(order_info)
+                timestamp = time.time()
+                timestamp_str = datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")  # 格式化时间戳
+                timestamp_str_in = datetime.fromtimestamp(timestamp).strftime("%Y%m%d%H%M%S")  # 格式化时间戳
 
-                print(self.window.order_list)
+                # 生成订单号，由账号+时间戳组成
+                order_number = self.app.username + timestamp_str_in
 
+                # 获取辅料订购列表
+                purchase_list = self.get_purchase_list()
+
+                # 遍历订购列表，向客户辅料订购表中插入记录
+                for i, purchase in enumerate(purchase_list):
+                    # 提取订购信息
+                    material_number = purchase[0]
+                    material_name = purchase[1]
+                    material_price = purchase[2]
+                    material_quantity = purchase[3]
+                    price = float(material_price) * float(material_quantity)
+
+                    # 构建插入语句
+                    sql = f"""INSERT INTO 客户辅料订单
+                          VALUES ('{self.app.username}', '{order_number}', '{timestamp_str}', {total_price}, {i + 1},
+                           '{material_number}', '{material_name}', {material_price}, {material_quantity}, {price})"""
+
+                    # 执行插入语句
+                    self.app.db.execute(sql)
+
+                # 清空购买列表和总价标签
                 self.purchaseTree.delete(*self.purchaseTree.get_children())
                 self.priceLabel.configure(text="总价：0.0元")
                 payment_window.destroy()
@@ -230,3 +294,26 @@ class MaterialsPage(BaseFrame):
             purchase_item = [pno, pna, ppr, quantity, total_price]
             purchase_list.append(purchase_item)
         return purchase_list
+
+    def search_materials(self, event=None):
+        keyword = self.search_text.get()
+
+        # 清空表格内容
+        self.searchTree.delete(*self.searchTree.get_children())
+
+        # 查询匹配的辅料
+        sql = f"""SELECT 规格编码, 品名, 规格, 单价 FROM [1药用辅料产品规格编码设置表]
+         WHERE 规格编码 LIKE '%{keyword}%' OR 品名 LIKE '%{keyword}%' OR 规格 LIKE '%{keyword}%'"""
+        self.app.db.execute(sql)
+        materials = self.app.db.cursor.fetchall()
+
+        # 将辅料信息插入表格中
+        for material in materials:
+            material = list(change_code(material))
+            material.append('[选购]')
+            item_id = self.searchTree.insert("", tk.END, values=material)
+            self.searchTree.set(item_id, "#5")  # 存储辅料编号
+
+        # # 绑定选购按钮的点击事件
+        # self.searchTree.bind("<Button-1>", self.select_material)
+
