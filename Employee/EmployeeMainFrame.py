@@ -115,7 +115,8 @@ class EmployeeMainFrame(BaseFrame):
         elif page_name == "员工管理":
             self.employee_management_page.show()
         elif page_name == "退出登录":
-            self.app.show_customer_login_frame()
+            self.app.window.geometry("500x300")
+            self.app.show_employee_login_frame()
             self.hide()
 
     def clear_all_pages(self):

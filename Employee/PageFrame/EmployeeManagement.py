@@ -29,7 +29,7 @@ class EmployeeManagementFrame(BaseFrame):
         scrollbar_x.grid(row=2, column=0, sticky=tk.E + tk.W)
 
         # 创建TreeView
-        self.treeview = EditableTreeview(self.app.db, '9员工信息表', 5, '工号', None, None, False,
+        self.treeview = EditableTreeview(self.app.db, '[9员工信息表]', 5, '工号', None, None, False,
                                          self, columns=columns, show="headings",
                                          xscrollcommand=scrollbar_x.set, yscrollcommand=scrollbar_y.set)
         self.treeview.grid(row=1, column=0, sticky=tk.N + tk.S + tk.E + tk.W)

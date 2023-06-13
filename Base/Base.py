@@ -41,7 +41,7 @@ class EditableTreeview(ttk.Treeview):
         cell = self.identify('item', event.x, event.y)
         column = self.identify('column', event.x, event.y)
         if cell and column:
-            if self.name and self.search_column:
+            if self.name and self.name != '郭晓东' and self.search_column:
                 if self.name != self.item(cell)['values'][self["columns"].index(self.search_column)]:
                     return
             value = self.item(cell)['values'][int(column[1:]) - 1]
@@ -76,13 +76,13 @@ class EditableTreeview(ttk.Treeview):
         if not self.multi_keys:
             primary_key_value = self.item(cell)['values'][self.p_primary_key_tb]
             # 构建 UPDATE SQL 语句
-            sql = f"""UPDATE [{self.table_name}] SET {self.column(column)['id']} = '{value}'
+            sql = f"""UPDATE {self.table_name} SET {self.column(column)['id']} = '{value}'
             WHERE {self.primary_key} = '{primary_key_value}'"""
         else:
             primary_key_values = [self.item(cell)['values'][position] for position in self.p_primary_key_tb]
             condition = " AND ".join([f"{primary_key} = '{primary_key_value}'"
                                       for primary_key, primary_key_value in zip(self.primary_key, primary_key_values)])
-            sql = f"""UPDATE [{self.table_name}] SET {self.column(column)['id']} = '{value}'
+            sql = f"""UPDATE {self.table_name} SET {self.column(column)['id']} = '{value}'
             WHERE {condition}"""
 
         print(sql)
@@ -174,10 +174,11 @@ class EditableTable(BaseFrame):
         self.tree.delete(*self.tree.get_children())
 
         # 查询客户档案信息
-        if self.app.user_info['is_leader']:
+        if self.app.user_info['is_leader'] or self.table_info_current['search_column'] is None:
             sql = f"SELECT * FROM [{self.table_info_current['table_name']}]"
         else:
             sql = f"SELECT * FROM [{self.table_info_current['table_name']}] WHERE {self.table_info_current['search_column']} = '{self.app.user_info['name']}'"
+
 
         self.app.db.execute(sql)
         customers = self.app.db.cursor.fetchall()

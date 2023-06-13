@@ -303,7 +303,9 @@ class MaterialsPage(BaseFrame):
 
         # 查询匹配的辅料
         sql = f"""SELECT 规格编码, 品名, 规格, 单价 FROM [1药用辅料产品规格编码设置表]
-         WHERE 规格编码 LIKE '%{keyword}%' OR 品名 LIKE '%{keyword}%' OR 规格 LIKE '%{keyword}%'"""
+         WHERE 规格编码 LIKE '%{keyword}%' OR 品名 LIKE '%{keyword}%' 
+         OR 规格 LIKE '%{keyword}%' OR 单价 LIKE '%{keyword}%'"""
+
         self.app.db.execute(sql)
         materials = self.app.db.cursor.fetchall()
 

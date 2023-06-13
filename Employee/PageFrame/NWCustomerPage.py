@@ -8,10 +8,10 @@ from Database.SQL import change_code
 class NWCustomerPage(EditableTable):
     def __init__(self, app, window, show):
         table_names = [
-            '8内贸部台账总表', '8外贸部台账总表'
+            '8内贸部台账总表', '[8外贸部台账总表]'
         ]
         search_columns = ['业务员'] * 2
-        p_primary_key_tbss = [None] * 2
+        p_primary_key_tbss = [[1, 40], [0, 44]]
         p_primary_key_dbss = [None] * 2
         primary_keyss = [['序号', '销售月份']] * 2
         super().__init__(app, window, show, search_columns, table_names, p_primary_key_dbss,
@@ -54,7 +54,7 @@ class NWCustomerPage(EditableTable):
         self.show_customer_page()
 
     def get_development_status(self):
-        status_options = ["A1", "A2", "A3", "B1", "B2", "B3"]
+        status_options = ["2022.1月", "2022.2月"]
 
         status_var = tk.StringVar()
         status_var.set(status_options[0])
@@ -101,9 +101,9 @@ class NWCustomerPage(EditableTable):
             for item in selected_items:
                 # 获取选中行的数据
                 values = [self.tree.item(item)['values'][self.tree['columns'].index('序号')],
-                          self.tree.item(item)['values'][self.tree['columns'].index('销售日期')]]
+                          self.tree.item(item)['values'][self.tree['columns'].index('销售月份')]]
                 condition = " AND ".join([f"{primary_key} = '{primary_key_value}'"
-                                          for primary_key, primary_key_value in zip(['序号', '销售日期'], values)])
+                                          for primary_key, primary_key_value in zip(['序号', '销售月份'], values)])
 
                 # 在数据库中执行删除操作
                 sql = f"DELETE FROM [{self.table_info_current['table_name']}] WHERE {condition}"

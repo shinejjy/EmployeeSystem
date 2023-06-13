@@ -16,7 +16,7 @@ class OrderListPage(BaseFrame):
         # 创建订单树
         columns = ['辅料编号', '辅料名称', '辅料单价', '订购数量', '价格']
         self.orderTree = ttk.Treeview(self, columns=columns, show='tree headings', displaycolumns='#all')
-        self.orderTree.heading('#0', text='时间戳+总价')
+        self.orderTree.heading('#0', text='订单号')
         self.orderTree.column('#0', width=180)
         for col in columns:
             self.orderTree.heading(col, text=col)
@@ -49,13 +49,14 @@ class OrderListPage(BaseFrame):
             sql = f"SELECT * FROM 客户辅料订单 WHERE 时间戳 = '{timestamp}'"
             self.app.db.execute(sql)
             purchase_list = self.app.db.cursor.fetchall()
-            total_price = str(purchase_list[0][3])
-            f_str = timestamp + ' ' + total_price
+            order_name = str(purchase_list[0][1])
 
             # 添加时间戳作为树节点
-            parent_node = self.orderTree.insert("", tk.END, text=f_str)
+            parent_node = self.orderTree.insert("", tk.END, text=order_name)
 
             for purchase_item in purchase_list:
                 purchase_item = change_code(purchase_item)
                 values = purchase_item[5:]
                 self.orderTree.insert(parent_node, tk.END, values=values)
+
+            self.orderTree.insert(parent_node, tk.END, values=('', '', '', '总价', str(purchase_list[0][3])))

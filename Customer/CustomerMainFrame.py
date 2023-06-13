@@ -47,10 +47,10 @@ class CustomerMainFrame(BaseFrame):
         elif page_name == "订购查询":
             self.order_list_page.show()
         elif page_name == "统计":
-            # self.order_stat_page.show()
-            pass
+            self.order_stat_page.show()
         elif page_name == '退出登录':
-            self.app.show_employee_login_frame()
+            self.app.window.geometry("500x300")
+            self.app.show_customer_login_frame()
             self.hide()
 
     def place_order(self, material):

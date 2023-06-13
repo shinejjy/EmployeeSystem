@@ -10,7 +10,7 @@ class UserLoginSystem:
         self.db = db
         self.window = tk.Tk()
         self.window.title("用户登录系统")
-        self.window.geometry("600x600")
+        self.window.geometry("500x300")
         self.window.resizable(False, False)
         self.window.configure(bg="white")
 
@@ -62,9 +62,11 @@ class UserLoginSystem:
         self.login_frame.pack_forget()
         if self.mode == 'employee':
             self.employee_main_frame = EmployeeMainFrame(self, self.window)
+            self.window.geometry("600x600")
             self.employee_main_frame.show()
         else:
             self.customer_main_frame = CustomerMainFrame(self, self.window)
+            self.window.geometry("600x600")
             self.customer_main_frame.show()
 
     def run(self):
